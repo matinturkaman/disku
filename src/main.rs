@@ -1,3 +1,4 @@
+use fs2;
 use std::{collections::HashMap, env, path::Path, process};
 use walkdir::WalkDir;
 
@@ -32,6 +33,11 @@ fn run(root: String) -> Result<(), &'static str> {
     if !root_path.exists() {
         return Err("No such file or directory");
     }
+
+    let free_space = match fs2::available_space(root_path) {
+        Ok(space) => space,
+        _ => 0,
+    };
 
     let mut files: Vec<File> = Vec::new();
     let mut entries: HashMap<String, File> = HashMap::new();
@@ -83,8 +89,9 @@ fn run(root: String) -> Result<(), &'static str> {
     // println!("{} files shown", entries.len());
 
     println!(
-        "Total size: {} bytes \n{entries:#?} \n{} files shown",
+        "Total size: {} bytes\n Free Space: {} \n{entries:#?} \n{} files shown",
         total_size,
+        free_space,
         entries.len()
     );
     Ok(())
