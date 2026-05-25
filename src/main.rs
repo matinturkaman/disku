@@ -1,6 +1,11 @@
-use fs2;
-use std::{collections::HashMap, env, path::Path, process};
-use walkdir::WalkDir;
+use crossterm::event::KeyCode;
+use ratatui::DefaultTerminal;
+use ratatui::widgets::TableState;
+use std::path::Path;
+use std::{env, io, process};
+use xerxes::Config;
+
+mod ui;
 
 fn main() {
     let mut args = env::args();
@@ -18,81 +23,39 @@ fn main() {
     }
 }
 
-#[derive(Debug)]
-struct File {
-    path: String,
-    size: u64,
-    is_hidden: bool,
-    is_file: bool,
-}
-
 fn run(root: String) -> Result<(), &'static str> {
-    let mut total_size = 0;
-
     let root_path = Path::new(&root);
     if !root_path.exists() {
         return Err("No such file or directory");
     }
 
-    let free_space = match fs2::available_space(root_path) {
-        Ok(space) => space,
-        _ => 0,
-    };
+    let config = Config::build(root)?;
 
-    let mut files: Vec<File> = Vec::new();
-    let mut entries: HashMap<String, File> = HashMap::new();
+    let mut table_state = TableState::default();
+    table_state.select_first();
+    ratatui::run(|terminal| app(terminal, config, &mut table_state))
+        .map_err(|_| "TUI execution failed")?;
 
-    for entry in WalkDir::new(&root) {
-        let entry = entry.unwrap();
-
-        let path = entry.path().to_string_lossy().to_string();
-        let size = match entry.metadata() {
-            Ok(meta) => meta.len(),
-            _ => 0,
-        };
-
-        let is_hidden = entry
-            .file_name()
-            .to_str()
-            .map(|s| s.starts_with("."))
-            .unwrap_or(false);
-
-        files.push(File {
-            path,
-            size,
-            is_hidden,
-            is_file: entry.path().is_file(),
-        })
-    }
-
-    for file in files {
-        let original_parent = file.path.split("/").take(2).collect::<Vec<_>>().join("/");
-
-        // ignore the root dir itself
-        if original_parent == root {
-            continue;
-        }
-
-        total_size += file.size;
-        entries
-            .entry(original_parent)
-            .and_modify(|e| e.size += file.size)
-            .or_insert(file);
-    }
-
-    // println!("Total size: {} KB", total_size as f64 / 1024.0);
-    //
-    // for (k, v) in &entries {
-    //     println!("{}\t\t{}", v.size, v.path)
-    // }
-    //
-    // println!("{} files shown", entries.len());
-
-    println!(
-        "Total size: {} bytes\n Free Space: {} \n{entries:#?} \n{} files shown",
-        total_size,
-        free_space,
-        entries.len()
-    );
     Ok(())
+}
+
+fn app(
+    terminal: &mut DefaultTerminal,
+    config: Config,
+    table_state: &mut TableState,
+) -> io::Result<()> {
+    loop {
+        terminal.draw(|frame| ui::render(frame, &config, table_state))?;
+
+        if let Some(key) = crossterm::event::read()?.as_key_event() {
+            match key.code {
+                KeyCode::Char('j') | KeyCode::Down => table_state.select_next(),
+                KeyCode::Char('k') | KeyCode::Up => table_state.select_previous(),
+                KeyCode::Char('g') | KeyCode::Home => table_state.select_first(),
+                KeyCode::Char('G') | KeyCode::PageDown => table_state.select_last(),
+                KeyCode::Char('q') => break Ok(()),
+                _ => {}
+            }
+        }
+    }
 }
