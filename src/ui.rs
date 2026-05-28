@@ -2,9 +2,9 @@ use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::text::Span;
 
+use disku::Config;
 use ratatui::style::{Color, Style};
 use ratatui::widgets::{Block, Row, Table, TableState};
-use xerxes::Config;
 
 pub fn render(frame: &mut Frame, config: &Config, file_list_state: &mut TableState) {
     let layout = Layout::vertical([Constraint::Length(1), Constraint::Fill(2)]).split(frame.area());

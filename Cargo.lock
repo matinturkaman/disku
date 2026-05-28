@@ -312,6 +312,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "disku"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "crossterm",
+ "ratatui",
+ "walkdir",
+]
+
+[[package]]
 name = "document-features"
 version = "0.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1917,16 +1927,6 @@ dependencies = [
  "serde_json",
  "unicode-xid",
  "wasmparser",
-]
-
-[[package]]
-name = "xerxes"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "crossterm",
- "ratatui",
- "walkdir",
 ]
 
 [[package]]

@@ -1,9 +1,9 @@
 use crossterm::event::KeyCode;
+use disku::Config;
 use ratatui::DefaultTerminal;
 use ratatui::widgets::TableState;
 use std::path::Path;
 use std::{env, io, process};
-use xerxes::Config;
 
 mod ui;
 
