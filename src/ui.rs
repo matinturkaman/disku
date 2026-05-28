@@ -60,7 +60,7 @@ fn draw_files(frame: &mut Frame, config: &Config, area: Rect, table_state: &mut 
         ]));
     }
 
-    let block = Block::bordered().border_style(Style::default().dark_gray());
+    let block = Block::bordered().border_style(Style::default().fg(Color::Rgb(29, 32, 33)));
     let widths = [
         Constraint::Percentage(10),
         Constraint::Percentage(10),
@@ -70,7 +70,7 @@ fn draw_files(frame: &mut Frame, config: &Config, area: Rect, table_state: &mut 
     ];
     let table = Table::new(rows, widths)
         .header(header)
-        .row_highlight_style(Style::new().bg(Color::DarkGray))
+        .row_highlight_style(Style::new().bg(Color::Rgb(29, 32, 33)))
         .block(block);
 
     frame.render_stateful_widget(table, area, table_state);
